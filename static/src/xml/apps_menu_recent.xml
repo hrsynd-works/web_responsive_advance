@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-inherit="web_responsive.AppsMenu" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-app-menu-list')]" position="before">
+            <div t-if="recentApps.length" class="o-app-menu-recent">
+                <div class="o-app-menu-recent__label">Recent</div>
+                <div class="o-app-menu-recent__list">
+                    <a t-foreach="recentApps" t-as="app" t-key="app.id"
+                       class="o-app-menu-item o-app-menu-item--recent"
+                       role="button"
+                       t-att-href="getRecentHref(app)"
+                       t-on-click="(ev) => this.onRecentClick(ev, app)"
+                       draggable="false">
+                        <div class="position-relative o_app">
+                            <img class="o-app-menu-item__icon rounded-3"
+                                 draggable="false"
+                                 t-att-src="getRecentIcon(app)"/>
+                        </div>
+                        <span class="o-app-menu-item__name" t-att-title="app.name">
+                            <t t-out="app.name"/>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>
