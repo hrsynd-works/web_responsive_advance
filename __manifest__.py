@@ -1,6 +1,8 @@
+# Copyright 2026 hrsynd
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0)
 {
-    "name": "Web Responsive Custom",
-    "summary": "Custom refinements for Web Responsive",
+    "name": "Web Responsive Advance",
+    "summary": "Refinements and UI polish for OCA web_responsive",
     "version": "18.0.1.0.0",
     "category": "Website",
     "author": "hrsynd",

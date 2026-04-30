@@ -1,3 +1,5 @@
+// Copyright 2026 hrsynd
+// License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0)
 import {AppsMenu} from "@web_responsive/components/apps_menu/apps_menu.esm";
 import {AppMenuItem} from "@web_responsive/components/apps_menu_item/apps_menu_item.esm";
 import {WebClient} from "@web/webclient/webclient";

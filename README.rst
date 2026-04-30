@@ -1,6 +1,6 @@
-=====================
+======================
 Web Responsive Advance
-=====================
+======================
 
 This module was born out of spite. Odoo 19 changed so many things that didn't need changing — and somewhere
 in that frustration, a thought clicked: why not take Odoo 18 Community, and actually polish it
@@ -58,19 +58,41 @@ Showcase
 --------
 
 .. image:: static/description/light-1.png
-   :alt: Light Mode
+   :alt: Light Mode 1
    :align: center
 
 |
 
 .. image:: static/description/light-2.png
-   :alt: Dark Mode
+   :alt: Light Mode 2
    :align: center
 
 |
 
 .. image:: static/description/light-preview.gif
-   :alt: App Drawer Animation
+   :alt: Demo Video
    :align: center
 
 |
+
+
+Credits
+-------
+
+This module extends `OCA web_responsive <https://github.com/OCA/web/tree/18.0/web_responsive>`_,
+originally authored by Tecnativa and the OCA contributors. All upstream code remains
+under its original LGPL-3 license.
+
+
+License
+-------
+
+This module is licensed under LGPL-3.0-or-later. See the ``LICENSE`` file for the
+full license text.
+
+
+Trademark Notice
+----------------
+
+"Odoo" is a trademark of Odoo S.A. This module is an independent community
+extension and is not affiliated with, endorsed by, or sponsored by Odoo S.A.
