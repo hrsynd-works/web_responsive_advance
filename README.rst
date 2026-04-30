@@ -13,6 +13,7 @@ What It Does
 Extends OCA's ``web_responsive`` with UI refinements, subtle animations, and personal touches
 that make Odoo 18 Community feel like it belongs in a higher tier.
 
+
 Key Improvements
 ----------------
 
@@ -40,10 +41,18 @@ Key Improvements
   Navigation entries now respond with a gentle hover effect. Small touch, big difference.
 
 
+Dependencies
+~~~~~~~~~~~~
+
+* `web_responsive <https://github.com/OCA/web/tree/18.0/web_responsive>`_ — OCA
+* `web_dark_mode <https://github.com/OCA/web/tree/18.0/web_dark_mode>`_ — OCA (optional, for dark mode support)
+
+
 Installation
 ------------
 
 Install the module. It depends on ``web_responsive``. That's it.
+
 
 Showcase
 --------
