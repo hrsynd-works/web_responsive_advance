@@ -3,7 +3,8 @@
     "summary": "Custom refinements for Web Responsive",
     "version": "18.0.1.0.0",
     "category": "Website",
-    "author": "Your Name",
+    "author": "hrsynd",
+    "website": "https://works.hrsynd.com",
     "license": "LGPL-3",
     "depends": ["web_responsive"],
     "assets": {
