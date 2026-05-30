@@ -11,8 +11,16 @@ import {actionService} from "@web/webclient/actions/action_service";
 // === Loading indicator ===
 // Inject an `.odoo-fast-container` SVG node into <body> while an action is
 // loading. Styles + animations live in navbar.scss.
+//
+// Refcounted so overlapping actions (rapid clicks, nested doAction calls)
+// keep the loader visible until the *last* one settles. Each start is
+// matched 1:1 with a stop via the wrapped promise's `.finally`.
 let _loaderNode = null;
+let _loaderCount = 0;
+const LOADER_TIMEOUT_MS = 30000;
+
 function startLoadingIndicator() {
+    _loaderCount++;
     if (_loaderNode) return;
     const node = document.createElement("div");
     node.className = "odoo-fast-container";
@@ -25,10 +33,35 @@ function startLoadingIndicator() {
     _loaderNode = node;
 }
 function stopLoadingIndicator() {
+    if (_loaderCount > 0) _loaderCount--;
+    if (_loaderCount > 0) return;
     if (_loaderNode) {
         _loaderNode.remove();
         _loaderNode = null;
     }
+}
+
+// Pair a start with a stop driven by the action's own promise. The settle
+// (resolve OR reject) is the canonical end-of-action signal — it covers
+// dialog actions, URL/report actions, server actions with no follow-up,
+// and errors, none of which fire ACTION_MANAGER:UI-UPDATED.
+//
+// A hard timeout safeguards against a buggy action whose promise never
+// settles; cleared on normal settle so it only fires if truly hung.
+function trackLoadingAction(result) {
+    startLoadingIndicator();
+    let stopped = false;
+    const stopOnce = () => {
+        if (stopped) return;
+        stopped = true;
+        stopLoadingIndicator();
+    };
+    const timer = setTimeout(stopOnce, LOADER_TIMEOUT_MS);
+    Promise.resolve(result).finally(() => {
+        clearTimeout(timer);
+        stopOnce();
+    });
+    return result;
 }
 
 // Wrap the action service so `doAction` (button-triggered actions, menu
@@ -40,14 +73,12 @@ actionService.start = function (env, deps) {
     const service = _origActionStart.call(this, env, deps);
     const _doAction = service.doAction;
     service.doAction = function (...args) {
-        startLoadingIndicator();
-        return _doAction.apply(this, args);
+        return trackLoadingAction(_doAction.apply(this, args));
     };
     if (service.switchView) {
         const _switchView = service.switchView;
         service.switchView = function (...args) {
-            startLoadingIndicator();
-            return _switchView.apply(this, args);
+            return trackLoadingAction(_switchView.apply(this, args));
         };
     }
     return service;
@@ -97,12 +128,6 @@ patch(AppMenuItem.prototype, {
 patch(WebClient.prototype, {
     setup() {
         super.setup();
-
-        // Stop the loading indicator whenever the action manager finishes
-        // updating its UI (action mounted / breadcrumb changed).
-        this.env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", () => {
-            stopLoadingIndicator();
-        });
 
         onWillStart(() => {
             const currentHash = window.location.hash;
