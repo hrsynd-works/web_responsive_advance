@@ -6,83 +6,9 @@ import {WebClient} from "@web/webclient/webclient";
 import {patch} from "@web/core/utils/patch";
 import {onMounted, onWillUnmount, onWillStart} from "@odoo/owl";
 import {getWebIconData} from "@web_responsive/components/apps_menu_tools.esm";
-import {actionService} from "@web/webclient/actions/action_service";
 
-// === Loading indicator ===
-// Inject an `.odoo-fast-container` SVG node into <body> while an action is
-// loading. Styles + animations live in navbar.scss.
-//
-// Refcounted so overlapping actions (rapid clicks, nested doAction calls)
-// keep the loader visible until the *last* one settles. Each start is
-// matched 1:1 with a stop via the wrapped promise's `.finally`.
-let _loaderNode = null;
-let _loaderCount = 0;
-const LOADER_TIMEOUT_MS = 30000;
-
-function startLoadingIndicator() {
-    _loaderCount++;
-    if (_loaderNode) return;
-    const node = document.createElement("div");
-    node.className = "odoo-fast-container";
-    node.innerHTML =
-        '<svg viewBox="0 0 100 100">' +
-        '<path class="base-line" d=""/>' +
-        '<path class="pulse-line" d=""/>' +
-        '</svg>';
-    document.body.appendChild(node);
-    _loaderNode = node;
-}
-function stopLoadingIndicator() {
-    if (_loaderCount > 0) _loaderCount--;
-    if (_loaderCount > 0) return;
-    if (_loaderNode) {
-        _loaderNode.remove();
-        _loaderNode = null;
-    }
-}
-
-// Pair a start with a stop driven by the action's own promise. The settle
-// (resolve OR reject) is the canonical end-of-action signal — it covers
-// dialog actions, URL/report actions, server actions with no follow-up,
-// and errors, none of which fire ACTION_MANAGER:UI-UPDATED.
-//
-// A hard timeout safeguards against a buggy action whose promise never
-// settles; cleared on normal settle so it only fires if truly hung.
-function trackLoadingAction(result) {
-    startLoadingIndicator();
-    let stopped = false;
-    const stopOnce = () => {
-        if (stopped) return;
-        stopped = true;
-        stopLoadingIndicator();
-    };
-    const timer = setTimeout(stopOnce, LOADER_TIMEOUT_MS);
-    Promise.resolve(result).finally(() => {
-        clearTimeout(timer);
-        stopOnce();
-    });
-    return result;
-}
-
-// Wrap the action service so `doAction` (button-triggered actions, menu
-// launches, navigations) and `switchView` (list → form when clicking a
-// record) start the indicator. Plain RPCs (onchange, save, search reads)
-// don't go through these methods and so won't trigger the loader.
-const _origActionStart = actionService.start;
-actionService.start = function (env, deps) {
-    const service = _origActionStart.call(this, env, deps);
-    const _doAction = service.doAction;
-    service.doAction = function (...args) {
-        return trackLoadingAction(_doAction.apply(this, args));
-    };
-    if (service.switchView) {
-        const _switchView = service.switchView;
-        service.switchView = function (...args) {
-            return trackLoadingAction(_switchView.apply(this, args));
-        };
-    }
-    return service;
-};
+// Loading indicator now lives in components/loading_indicator/ and is
+// driven by rpcBus (same signal as the stock LoadingIndicator).
 
 // Recent apps tracking — persisted in localStorage so the row is populated
 // across sessions. Capped at 5; most-recent first.

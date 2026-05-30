@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_responsive_advance.LoadingIndicator">
+        <Transition visible="state.show" name="'o-fade'" t-slot-scope="transition" leaveDuration="200">
+            <div class="odoo-fast-container" t-att-class="transition.className">
+                <svg viewBox="0 0 100 100">
+                    <path class="base-line" d=""/>
+                    <path class="pulse-line" d=""/>
+                </svg>
+            </div>
+        </Transition>
+    </t>
+
+</templates>

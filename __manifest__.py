@@ -20,6 +20,8 @@
         ],
         "web.assets_backend": [
             "web_responsive_advance/static/src/js/apps_menu_ext.esm.js",
+            "web_responsive_advance/static/src/components/loading_indicator/loading_indicator.esm.js",
+            "web_responsive_advance/static/src/components/loading_indicator/loading_indicator.xml",
             "web_responsive_advance/static/src/scss/navbar.scss",
             "web_responsive_advance/static/src/xml/apps_menu_recent.xml",
         ],
