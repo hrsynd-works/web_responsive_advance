@@ -6,52 +6,9 @@ import {WebClient} from "@web/webclient/webclient";
 import {patch} from "@web/core/utils/patch";
 import {onMounted, onWillUnmount, onWillStart} from "@odoo/owl";
 import {getWebIconData} from "@web_responsive/components/apps_menu_tools.esm";
-import {actionService} from "@web/webclient/actions/action_service";
 
-// === Loading indicator ===
-// Inject an `.odoo-fast-container` SVG node into <body> while an action is
-// loading. Styles + animations live in navbar.scss.
-let _loaderNode = null;
-function startLoadingIndicator() {
-    if (_loaderNode) return;
-    const node = document.createElement("div");
-    node.className = "odoo-fast-container";
-    node.innerHTML =
-        '<svg viewBox="0 0 100 100">' +
-        '<path class="base-line" d=""/>' +
-        '<path class="pulse-line" d=""/>' +
-        '</svg>';
-    document.body.appendChild(node);
-    _loaderNode = node;
-}
-function stopLoadingIndicator() {
-    if (_loaderNode) {
-        _loaderNode.remove();
-        _loaderNode = null;
-    }
-}
-
-// Wrap the action service so `doAction` (button-triggered actions, menu
-// launches, navigations) and `switchView` (list → form when clicking a
-// record) start the indicator. Plain RPCs (onchange, save, search reads)
-// don't go through these methods and so won't trigger the loader.
-const _origActionStart = actionService.start;
-actionService.start = function (env, deps) {
-    const service = _origActionStart.call(this, env, deps);
-    const _doAction = service.doAction;
-    service.doAction = function (...args) {
-        startLoadingIndicator();
-        return _doAction.apply(this, args);
-    };
-    if (service.switchView) {
-        const _switchView = service.switchView;
-        service.switchView = function (...args) {
-            startLoadingIndicator();
-            return _switchView.apply(this, args);
-        };
-    }
-    return service;
-};
+// Loading indicator now lives in components/loading_indicator/ and is
+// driven by rpcBus (same signal as the stock LoadingIndicator).
 
 // Recent apps tracking — persisted in localStorage so the row is populated
 // across sessions. Capped at 5; most-recent first.
@@ -97,12 +54,6 @@ patch(AppMenuItem.prototype, {
 patch(WebClient.prototype, {
     setup() {
         super.setup();
-
-        // Stop the loading indicator whenever the action manager finishes
-        // updating its UI (action mounted / breadcrumb changed).
-        this.env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", () => {
-            stopLoadingIndicator();
-        });
 
         onWillStart(() => {
             const currentHash = window.location.hash;

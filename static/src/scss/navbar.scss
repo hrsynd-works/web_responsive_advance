@@ -150,13 +150,51 @@
     );
 }
 
+// Hide stock's "Loading" text — our custom indicator (component in
+// components/loading_indicator/) replaces it visually.
+.o_loading_indicator {
+    display: none;
+}
+
 .odoo-fast-container {
     position: fixed;
     bottom: 1rem;
     right: 1rem;
-    z-index: 2000;
+    z-index: 9999;
     pointer-events: none;
-    animation: wra-loader-fade-in 0.18s ease-out both;
+
+    // Mobile: ditch the corner SVG (it overlaps app icons / content on
+    // small screens) and use a thin animated progress bar at the very top
+    // edge of the viewport — outside the content area, so it can never
+    // collide with anything.
+    @include media-breakpoint-down(md) {
+        top: 0;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        height: 3px;
+        overflow: hidden;
+        background: rgba(127, 127, 127, 0.15);
+
+        svg {
+            display: none;
+        }
+
+        &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 40%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                var(--wra-odoo-purple),
+                var(--wra-odoo-teal),
+                transparent
+            );
+            animation: wra-mobile-bar 1.1s ease-in-out infinite;
+        }
+    }
 
     svg {
         width: 44px;
@@ -189,9 +227,9 @@
     }
 }
 
-@keyframes wra-loader-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes wra-mobile-bar {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(350%); }
 }
 
 @keyframes wra-fast-morph {
