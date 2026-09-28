@@ -4,6 +4,7 @@ import {AppsMenu} from "@web_responsive/components/apps_menu/apps_menu.esm";
 import {AppMenuItem} from "@web_responsive/components/apps_menu_item/apps_menu_item.esm";
 import {WebClient} from "@web/webclient/webclient";
 import {patch} from "@web/core/utils/patch";
+import {router} from "@web/core/browser/router";
 import {onMounted, onWillUnmount, onWillStart} from "@odoo/owl";
 import {getWebIconData} from "@web_responsive/components/apps_menu_tools.esm";
 
@@ -38,6 +39,16 @@ function recordRecentApp(appId) {
     const current = readRecentIds().filter((id) => id !== appId);
     current.unshift(appId);
     writeRecentIds(current.slice(0, RECENT_MAX));
+}
+
+// Leaving #home without picking an app: put back the URL of the action that is
+// still on screen. The router's own state is never touched by our manual
+// history writes, so it still describes that action. Hardcoding "/odoo" here
+// used to drop the action path, and a refresh then landed on the home menu.
+function restoreActionUrl() {
+    if (window.location.hash !== "#home") return;
+    const url = router.stateToUrl(router.current);
+    window.history.replaceState({nextState: router.current}, "", url);
 }
 
 // Track app launches so the "Recent" row stays current.
@@ -109,8 +120,9 @@ patch(AppsMenu.prototype, {
 
     onMenuClick() {
         super.onMenuClick();
-        // Ensure hash is set whenever the menu ends up open after a click
-        if (this.state.open) {
+        // Ensure hash is set whenever the menu ends up open after a click.
+        // `state.open` stays true during the close animation, so skip then.
+        if (this.state.open && !this._closing) {
             window.history.replaceState(null, "", "/odoo#home");
         }
     },
@@ -155,15 +167,15 @@ patch(AppsMenu.prototype, {
             const el = document.querySelector(".app-menu-container");
             if (el && !el.classList.contains("is-closing")) {
                 el.classList.add("is-closing");
+                this._closing = true;
                 let done = false;
                 const finish = () => {
                     if (done) return;
                     done = true;
+                    this._closing = false;
                     el.removeEventListener("animationend", onEnd);
                     super.setOpenState(false);
-                    if (window.location.hash === "#home") {
-                        window.history.replaceState(null, "", "/odoo");
-                    }
+                    restoreActionUrl();
                 };
                 const onEnd = (ev) => {
                     if (ev.target !== el) return;
@@ -179,10 +191,10 @@ patch(AppsMenu.prototype, {
 
         if (open_state) {
             if (window.location.hash !== "#home") {
-                window.history.pushState(null, "", "/odoo#home");
+                window.history.pushState({nextState: router.current}, "", "/odoo#home");
             }
-        } else if (window.location.hash === "#home") {
-            window.history.replaceState(null, "", "/odoo");
+        } else {
+            restoreActionUrl();
         }
     },
 });
